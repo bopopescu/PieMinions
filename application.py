@@ -77,8 +77,7 @@ def sns():
 
     		print "data = ", data
 
-    		# r = requests.post(url, data=data)
-    		r = requests.get(url, params=data)
+    		r = requests.post(url, data=json.dumps(data))
 
     		return r.content
 
