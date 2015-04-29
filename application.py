@@ -13,6 +13,7 @@ import urllib
 import boto.sqs
 from boto.sqs.message import Message
 
+
 application = Flask(__name__)
 
 # global list 
@@ -22,79 +23,79 @@ application = Flask(__name__)
 # SNS HTTP request endpoint: subscribe, unsubscribe, notification
 @application.route('/minions', methods = ['POST','GET'])
 def sns():
-	headers = request.headers
-	print "headers", headers
-	print "request", request
-	arn = headers.get('X-Amz-Sns-Topic-Arn')
-	print "before request.data"
-	obj = json.loads(request.data)
-	if arn:
-		snsType = headers.get('X-Amz-Sns-Message-Type')
-		if snsType == 'SubscriptionConfirmation':
-			subscribe_url = obj[u'SubscribeURL']
+    headers = request.headers
+    print "headers", headers
+    print "request", request
+    arn = headers.get('X-Amz-Sns-Topic-Arn')
+    print "before request.data"
+    obj = json.loads(request.data)
+    if arn:
+        snsType = headers.get('X-Amz-Sns-Message-Type')
+        if snsType == 'SubscriptionConfirmation':
+            subscribe_url = obj[u'SubscribeURL']
 
-			f = urllib.urlopen(subscribe_url)
-			myfile = f.read()
-			print myfile
+            f = urllib.urlopen(subscribe_url)
+            myfile = f.read()
+            print myfile
 
-			return '', 200
+            return '', 200
 
-		elif snsType == 'Notification':
-			notification_id = obj[u'MessageId']
-        	message = obj[u'Message']
-        	print message
+        elif snsType == 'Notification':
+            notification_id = obj[u'MessageId']
+            message = obj[u'Message']
+            print message
 
-        	
+            
 
-        	conn = boto.sqs.connect_to_region("us-east-1")
-        	q = conn.get_queue('kitkat_SQS')
-        	print "made connection"
+            conn = boto.sqs.connect_to_region("us-east-1")
+            q = conn.get_queue('kitkat_SQS')
+            print "made connection"
 
-    		# global resultsFromSQS
-    		tempSQS = []
-        	for i in range(3):
-        		rs = q.get_messages(message_attributes=['text','sentimentStat','geoLat','geoLong'])
-        		text = rs[0].message_attributes['text']['string_value']
-        		geoLat = rs[0].message_attributes['geoLat']['string_value']
-        		geoLong = rs[0].message_attributes['geoLong']['string_value']
-        		sentimentStat = rs[0].message_attributes['sentimentStat']['string_value']
+            # global resultsFromSQS
+            tempSQS = []
+            for i in range(3):
+                rs = q.get_messages(message_attributes=['text','sentimentStat','geoLat','geoLong'])
+                text = rs[0].message_attributes['text']['string_value']
+                geoLat = rs[0].message_attributes['geoLat']['string_value']
+                geoLong = rs[0].message_attributes['geoLong']['string_value']
+                sentimentStat = rs[0].message_attributes['sentimentStat']['string_value']
 
-        		tempSQS.append({
-        			'text': text,
-        			'geoLat': geoLat,
-        			'geoLong': geoLong,
-        			'sentimentStat': sentimentStat
-        			})
+                tempSQS.append({
+                    'text': text,
+                    'geoLat': geoLat,
+                    'geoLong': geoLong,
+                    'sentimentStat': sentimentStat
+                    })
 
 
-    			print "tempSQS = ", tempSQS
+                print "tempSQS = ", tempSQS
 
-    		# POSTing data to /kitkat
-    		# url = 'http://160.39.131.49:9090/kitkat'
-    		
-    		url = 'http://webpietwittworker-dev.elasticbeanstalk.com/kitkat'
+            # POSTing data to /kitkat
+            url = 'http://webpietwittworker-dev.elasticbeanstalk.com/kitkat'
 
-    		data = {'data1': tempSQS[0], 'data2': tempSQS[1], 'data3': tempSQS[2]}
+            data = {'data1': tempSQS[0], 'data2': tempSQS[1], 'data3': tempSQS[2]}
 
-    		print "data = ", data
+            print "data = ", data
 
-    		r = requests.post(url, data=json.dumps(data))
+            r = requests.post(url, data=json.dumps(data))
 
-    		return r.content
+            return r.content
 
-    		# return '', 200
-	else:
-		return '', 404
+            # return '', 200
+
+
+    else:
+        return '', 404
 
 
 
 if __name__ == '__main__':
-	try: 
-		application.config["DEBUG"] = True
-		application.run(host='0.0.0.0', port=9999)
-		#application.run(host='199.58.86.213', port=5000)
+    try: 
+        application.config["DEBUG"] = True
+        application.run(host='0.0.0.0', port=9999, threaded=True)
+        #application.run(host='199.58.86.213', port=5000)
 
 
-	except:
-		print "application.run failed"
+    except:
+        print "application.run failed"
 
