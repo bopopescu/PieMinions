@@ -13,7 +13,6 @@ import urllib
 import boto.sqs
 from boto.sqs.message import Message
 
-
 application = Flask(__name__)
 
 # global list 
@@ -71,7 +70,9 @@ def sns():
     			print "tempSQS = ", tempSQS
 
     		# POSTing data to /kitkat
-    		url = 'http://160.39.131.213:9090/kitkat'
+    		# url = 'http://160.39.131.49:9090/kitkat'
+    		
+    		url = 'http://webpietwittworker-dev.elasticbeanstalk.com/kitkat'
 
     		data = {'data1': tempSQS[0], 'data2': tempSQS[1], 'data3': tempSQS[2]}
 
@@ -82,8 +83,6 @@ def sns():
     		return r.content
 
     		# return '', 200
-
-
 	else:
 		return '', 404
 
@@ -92,7 +91,7 @@ def sns():
 if __name__ == '__main__':
 	try: 
 		application.config["DEBUG"] = True
-		application.run(host='0.0.0.0', port=9999)
+		application.run(host='0.0.0.0', port=9999, threaded=True)
 		#application.run(host='199.58.86.213', port=5000)
 
 
