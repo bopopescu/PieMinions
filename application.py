@@ -92,7 +92,7 @@ def sns():
 if __name__ == '__main__':
 	try: 
 		application.config["DEBUG"] = True
-		application.run(host='0.0.0.0', port=9999)
+		application.run(host='0.0.0.0', port=9999, threaded=True)
 		#application.run(host='199.58.86.213', port=5000)
 
 
